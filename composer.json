@@ -1,0 +1,27 @@
+{
+    "name": "vlad/task-manager-api",
+    "type": "project",
+    "license": "MIT",
+    "description": "Task manager API",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Vlad",
+            "email": "t1nky132@mail.ru"
+        }
+    ],
+    "require": {
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.7",
+        "ext-json": "*",
+        "php-di/php-di": "^6.4",
+        "monolog/monolog": "^2.9"
+    },
+    "scripts": {
+        "start": "php -S localhost:8080 -t public/"
+    }
+}
