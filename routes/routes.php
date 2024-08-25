@@ -15,6 +15,9 @@ return function (App $app) {
 
     //region task routing
     $app->get('/tasks/', [TaskController::class, 'getAllTasks']);
+    $app->post('/tasks/', [TaskController::class, 'createTask']);
+    $app->delete('/tasks/{id}', [TaskController::class, 'deleteTask']);
+    $app->put('/tasks/{id}', [TaskController::class, 'updateTask']);
     //endregion
 };
 
