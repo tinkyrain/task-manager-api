@@ -19,7 +19,8 @@
         "slim/psr7": "^1.7",
         "ext-json": "*",
         "php-di/php-di": "^6.4",
-        "monolog/monolog": "^2.9"
+        "monolog/monolog": "^2.9",
+        "gabordemooij/redbean": "^5.7"
     },
     "scripts": {
         "start": "php -S localhost:8080 -t public/"
