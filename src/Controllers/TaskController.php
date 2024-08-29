@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
@@ -21,10 +22,15 @@ class TaskController
     public function getAllTasks(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         //get all tasks
-        $result = R::findAll('tasks');
+        $result = [];
 
-        $response->getBody()->write(json_encode($result));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        try {
+            $result = R::findAll('tasks');
+        } catch (Exception $e) {
+            $this->createErrorResponse($response, 500, 'Error get tasks. Error: ' . $e->getMessage());
+        }
+
+        return $this->createSuccessResponse($response, $result, 200);
     }
 
     /**
@@ -36,11 +42,9 @@ class TaskController
      * @param ResponseInterface $response
      * @param $args
      * @return ResponseInterface
-     * @throws SQL
      */
     public function createTask(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        $result = [];
         $requestData = $request->getParsedBody(); //get request data
         $errors = []; //error data
 
@@ -52,15 +56,21 @@ class TaskController
 
         //if validate success then add task
         if (count($errors) === 0) {
-            $tasksTable = R::dispense('tasks');
-            $tasksTable->title = $requestData['title'];
-            $tasksTable->description = $requestData['description'] ?? '';
-            $tasksTable->created_at = R::isoDateTime();
-            $tasksTable->is_active = $requestData['is_active'] ?? 'Y';
-            $tasksTable->assignee_id = $requestData['assignee_id'] ?? 0;
-            $tasksTable->creator_id = $requestData['creator_id'] ?? 0;
+            try {
+                $tasksTable = R::dispense('tasks');
+                $tasksTable->title = $requestData['title'];
+                $tasksTable->description = $requestData['description'] ?? '';
+                $tasksTable->created_at = R::isoDateTime();
+                $tasksTable->is_active = $requestData['is_active'] ?? 'Y';
+                $tasksTable->assignee_id = $requestData['assignee_id'] ?? 0;
+                $tasksTable->creator_id = $requestData['creator_id'] ?? 0;
 
-            $newTaskId = R::store($tasksTable);
+                $newTaskId = R::store($tasksTable);
+            } catch (Exception $e) {
+                return $this->createErrorResponse($response, 500, 'Error creating task. Error: ' . $e->getMessage());
+            }
+        } else {
+            return $this->createErrorResponse($response, 400, 'Error creating task. Errors: ', $errors);
         }
 
         //json result
@@ -70,8 +80,7 @@ class TaskController
             'errors' => $errors,
         ];
 
-        $response->getBody()->write(json_encode($result));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+        return $this->createSuccessResponse($response, $result, 201);
     }
 
     /**
@@ -95,71 +104,99 @@ class TaskController
 
         // check task
         if (!$task->id) {
-            $result = [
-                'success' => false,
-                'errors' => ['Task not found'],
-            ];
-
-            $response->getBody()->write(json_encode($result));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            return $this->createErrorResponse($response, 404, 'Task not found');
         }
 
-        // delete task
-        R::trash($task);
+        try {
+            // delete task
+            R::trash($task);
 
-        $result = [
-            'success' => true,
-            'errors' => [],
-        ];
+            $result = [
+                'success' => true,
+                'errors' => [],
+            ];
 
-        $response->getBody()->write(json_encode($result));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(204);
+            return $this->createSuccessResponse($response, $result, 204);
+        } catch (Exception $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
+        }
     }
 
+    /**
+     * This method update task
+     *
+     * METHOD: PUT
+     *
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @param $args
+     * @return ResponseInterface
+     */
     public function updateTask(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        $result = [];
+        $taskId = $request->getAttribute('id');
+        $requestData = json_decode($request->getBody()->getContents(), true);
 
-        $id = $request->getAttribute('id');; // get task id
-        $requestData = $request->getParsedBody(); // get request body
+        // Load task from DB
+        $task = R::load('tasks', $taskId);
 
-        // load task in db
-        $task = R::load('tasks', $id);
-
-        // check task
+        // Check if task exists
         if (!$task->id) {
-            $result = [
-                'success' => false,
-                'errors' => ['Task not found'],
-            ];
-
-            $response->getBody()->write(json_encode($result));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            return $this->createErrorResponse($response, 404, 'Task not found');
         }
 
-        //get tasks table column
+        // Update task fields from request data
         $tableColumns = array_keys(R::inspect('tasks'));
-
-        var_dump($requestData);
-
-        // update field
         foreach ($tableColumns as $column) {
             if (isset($requestData[$column])) {
                 $task->$column = $requestData[$column];
             }
         }
 
-        // Save changes
-        $updateTaskId = R::store($task);
+        // Save changes and handle potential errors
+        try {
+            R::store($task);
+            $responseData = [
+                'data' => $task,
+                'success' => true,
+                'errors' => [],
+            ];
+            return $this->createSuccessResponse($response, $responseData, 200);
+        } catch (Exception $e) {
+            return $this->createErrorResponse($response, 500, 'Error updating task: ' . $e->getMessage());
+        }
+    }
 
+    /**
+     * This method return success response
+     *
+     * @param ResponseInterface $response
+     * @param array $data
+     * @param int $statusCode
+     * @return ResponseInterface
+     */
+    private function createSuccessResponse(ResponseInterface $response, array $data, int $statusCode = 200): ResponseInterface
+    {
+        $response->getBody()->write(json_encode($data));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
+    }
+
+    /**
+     * This method return error response
+     *
+     * @param ResponseInterface $response
+     * @param int $statusCode
+     * @param string|array $errorMessage
+     * @return ResponseInterface
+     */
+    private function createErrorResponse(ResponseInterface $response, int $statusCode, string|array $errorMessage): ResponseInterface
+    {
         $result = [
-            'data' => R::load('tasks', $updateTaskId),
-            'success' => true,
-            'errors' => [],
+            'success' => false,
+            'errors' => is_array($errorMessage) ? $errorMessage : [$errorMessage],
         ];
-
-        // Return data
         $response->getBody()->write(json_encode($result));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
     }
 }
