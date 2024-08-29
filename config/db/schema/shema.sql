@@ -15,13 +15,13 @@ CREATE TABLE tasks
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     title       VARCHAR(255) NOT NULL,
-    created_at  DATETIME        DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     due_date    DATETIME,
     is_active   ENUM ('Y', 'N') DEFAULT 'Y',
     description TEXT,
-    assignee_id INT, -- ID пользователя, ответственного за задачу
-    creator_id  INT, -- ID пользователя, который создал задачу
+    assignee_id INT NOT NULL, -- ID пользователя, ответственного за задачу
+    creator_id  INT NOT NULL, -- ID пользователя, который создал задачу
     FOREIGN KEY (assignee_id) REFERENCES users (id),
     FOREIGN KEY (creator_id) REFERENCES users (id)
 );
