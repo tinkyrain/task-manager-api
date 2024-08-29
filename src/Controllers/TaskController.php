@@ -27,7 +27,7 @@ class TaskController
         try {
             $result = R::findAll('tasks');
         } catch (Exception $e) {
-            $this->createErrorResponse($response, 500, 'Error get tasks. Error: ' . $e->getMessage());
+            $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 200);
@@ -45,12 +45,20 @@ class TaskController
      */
     public function createTask(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        $requestData = $request->getParsedBody(); //get request data
+        $requestData = json_decode($request->getBody()->getContents(), true); //get request data
         $errors = []; //error data
 
         //region validate
         if (empty($requestData['title'])) {
             $errors['title'] = 'Title is required';
+        }
+
+        if (empty($requestData['creator_id'])) {
+            $errors['creator_id'] = 'Creator id is required';
+        }
+
+        if (empty($requestData['assignee_id'])) {
+            $errors['assignee_id'] = 'Assignee id is required';
         }
         //endregion
 
@@ -62,15 +70,15 @@ class TaskController
                 $tasksTable->description = $requestData['description'] ?? '';
                 $tasksTable->created_at = R::isoDateTime();
                 $tasksTable->is_active = $requestData['is_active'] ?? 'Y';
-                $tasksTable->assignee_id = $requestData['assignee_id'] ?? 0;
-                $tasksTable->creator_id = $requestData['creator_id'] ?? 0;
+                $tasksTable->assignee_id = $requestData['assignee_id'];
+                $tasksTable->creator_id = $requestData['creator_id'];
 
                 $newTaskId = R::store($tasksTable);
             } catch (Exception $e) {
-                return $this->createErrorResponse($response, 500, 'Error creating task. Error: ' . $e->getMessage());
+                return $this->createErrorResponse($response, 500, $e->getMessage());
             }
         } else {
-            return $this->createErrorResponse($response, 400, 'Error creating task. Errors: ', $errors);
+            return $this->createErrorResponse($response, 400, $errors);
         }
 
         //json result
@@ -164,7 +172,7 @@ class TaskController
             ];
             return $this->createSuccessResponse($response, $responseData, 200);
         } catch (Exception $e) {
-            return $this->createErrorResponse($response, 500, 'Error updating task: ' . $e->getMessage());
+            return $this->createErrorResponse($response, 500, $e->getMessage());
         }
     }
 
