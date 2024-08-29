@@ -21,16 +21,29 @@ class TaskController
      */
     public function getAllTasks(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        //get all tasks
         $result = [];
+        $page = empty($request->getQueryParams()['page']) ? 1 : (int) $request->getQueryParams()['page']; // get page
+        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int) $request->getQueryParams()['limit']; // get limit data per page
+        $offset = ($page - 1) * $limit; // offset
 
         try {
-            $result = R::findAll('tasks');
-        } catch (Exception $e) {
-            $this->createErrorResponse($response, 500, $e->getMessage());
+            $tasks = R::find('tasks', 'LIMIT ?, ?', [$offset, $limit]); // get data
+            $totalTasks = R::count('tasks'); // get total task count
+
+            // Формируем результат
+            $result = [
+                'data' => $tasks,
+                'pagination' => [
+                    'total' => $totalTasks,
+                    'page' => $page,
+                    'limit' => $limit,
+                ],
+            ];
+        } catch (Exception|\DivisionByZeroError $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
-        return $this->createSuccessResponse($response, $result, 200);
+        return $this->createSuccessResponse($response, $result);
     }
 
     /**
