@@ -2,6 +2,7 @@
 
 use App\Controllers\TagsControllers\TagsController;
 use App\Controllers\TaskControllers\TaskController;
+use App\Controllers\TaskControllers\TaskToTagsController;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\App;
@@ -19,6 +20,8 @@ return function (App $app) {
     $app->post('/tasks/', [TaskController::class, 'createTask']);
     $app->delete('/tasks/{id}', [TaskController::class, 'deleteTask']);
     $app->put('/tasks/{id}', [TaskController::class, 'updateTask']);
+
+    $app->post('/tasks/{id}/tags/', [TaskToTagsController::class, 'addTagsToTask']); //add tag to task
     //endregion
 
     //region tags routing
