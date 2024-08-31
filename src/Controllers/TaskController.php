@@ -2,13 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Controllers\AbstractController\Controller;
 use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
 use RedBeanPHP\RedException\SQL;
 
-class TaskController
+class TaskController extends Controller
 {
     /**
      * This method return all tasks
@@ -187,37 +188,5 @@ class TaskController
         } catch (Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
-    }
-
-    /**
-     * This method return success response
-     *
-     * @param ResponseInterface $response
-     * @param array $data
-     * @param int $statusCode
-     * @return ResponseInterface
-     */
-    private function createSuccessResponse(ResponseInterface $response, array $data, int $statusCode = 200): ResponseInterface
-    {
-        $response->getBody()->write(json_encode($data));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
-    }
-
-    /**
-     * This method return error response
-     *
-     * @param ResponseInterface $response
-     * @param int $statusCode
-     * @param string|array $errorMessage
-     * @return ResponseInterface
-     */
-    private function createErrorResponse(ResponseInterface $response, int $statusCode, string|array $errorMessage): ResponseInterface
-    {
-        $result = [
-            'success' => false,
-            'errors' => is_array($errorMessage) ? $errorMessage : [$errorMessage],
-        ];
-        $response->getBody()->write(json_encode($result));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
     }
 }
