@@ -1,6 +1,7 @@
 <?php
 
-use App\Controllers\TaskController;
+use App\Controllers\TagsControllers\TagsController;
+use App\Controllers\TaskControllers\TaskController;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\App;
@@ -18,6 +19,13 @@ return function (App $app) {
     $app->post('/tasks/', [TaskController::class, 'createTask']);
     $app->delete('/tasks/{id}', [TaskController::class, 'deleteTask']);
     $app->put('/tasks/{id}', [TaskController::class, 'updateTask']);
+    //endregion
+
+    //region tags routing
+    $app->get('/tags/', [TagsController::class, 'getAllTags']);
+    $app->post('/tags/', [TagsController::class, 'createTag']);
+    $app->delete('/tags/{id}', [TagsController::class, 'deleteTag']);
+    $app->put('/tags/{id}', [TagsController::class, 'updateTag']);
     //endregion
 };
 
