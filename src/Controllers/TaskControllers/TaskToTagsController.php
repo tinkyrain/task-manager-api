@@ -22,18 +22,28 @@ class TaskToTagsController extends Controller
     {
         $bodyRequest = json_decode($request->getBody()->getContents(), true); //get request data
         $errors = [];
+        $tags = [];
 
         $taskId = (int)$request->getAttribute('id') ?? 0; // get task id from request
-        $tagId = (int)$bodyRequest['tag_id'] ?? 0; // get tag id from request
+        $tagsIds = (array)$bodyRequest['tag_id'] ?? []; // get tag id from request
 
         try {
             $task = R::load('tasks', $taskId); // get task data
-            $tag = R::load('tags', $tagId); // get tag data
+            if (!$task->id) $errors[] = 'Task with id ' . $taskId . ' not found'; // task validation
+
+            // get tags data
+            foreach ($tagsIds as $tagId) {
+                $tag = R::load('tags', $tagId);
+
+                //tag validation
+                if ($tag->id) {
+                    $tags[] = $tag;
+                } else {
+                    $errors[] = 'Tag with id ' . $tagId . ' not found';
+                }
+            }
 
             // data validation for exists
-            if (!$task->id) $errors[] = 'Task with id ' . $taskId . ' not found';
-            if (!$tag->id) $errors[] = 'Tag with id ' . $tagId . ' not found';
-
             if (count($errors) > 0) return $this->createErrorResponse($response, 500, $errors);
 
             // because our table has name with "_", then we are using with method
@@ -41,13 +51,12 @@ class TaskToTagsController extends Controller
                 return R::getRedBean()->dispense( $type );
             });
 
-            // create task to tag connection
-            $taskToTagsTable = R::xdispense('task_tags');
-            $taskToTagsTable->task_id = (int)$taskId;
-            $taskToTagsTable->tag_id = (int)$tagId;
+            //connection tasks and tags
+            foreach ($tags as $tag) {
+                $task->sharedTags[] = $tag;
+            }
 
-            // add data in table
-            R::store($taskToTagsTable);
+            R::store($task);
 
             $result = [
                 'data' => [],

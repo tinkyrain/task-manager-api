@@ -31,11 +31,3 @@ CREATE TABLE tags
     id   INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
-
-CREATE TABLE task_tags
-(
-    task_id INT,
-    tag_id  INT,
-    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
