@@ -145,11 +145,11 @@ class TaskController extends Controller
 
             // delete task
             R::trash($task);
-
-            return $this->createSuccessResponse($response, [], 204);
         } catch (Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
+
+        return $this->createSuccessResponse($response, [], 204);
     }
 
     /**

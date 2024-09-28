@@ -21,11 +21,11 @@ class TagsController extends Controller
      */
     public function getAllTags(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
-        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int)$request->getQueryParams()['limit']; // get limit data per page
-        $offset = ($page - 1) * $limit; // offset
-
         try {
+            $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
+            $limit = empty($request->getQueryParams()['limit']) ? 25 : (int)$request->getQueryParams()['limit']; // get limit data per page
+            $offset = ($page - 1) * $limit; // offset
+
             $tags = R::find('tags', 'LIMIT ? OFFSET ?', [$limit, $offset]); // get data
             $totalTags = R::count('tags'); // get total task count
 
@@ -64,7 +64,6 @@ class TagsController extends Controller
             if (!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found');
 
             $result['data'] = $tag;
-
         } catch (Exception|\DivisionByZeroError $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
@@ -84,25 +83,22 @@ class TagsController extends Controller
      */
     public function createTag(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        $requestData = json_decode($request->getBody()->getContents(), true); //get request data
-        $errors = []; //error data
-
-        //region validate
-        if (empty($requestData['name']))
-            return $this->createErrorResponse($response, 400, 'Tag name is required');
-        //endregion
-
-        //if validate success then add tag
         try {
+            $requestData = json_decode($request->getBody()->getContents(), true); //get request data
+
+            //validate
+            if (empty($requestData['name']))
+                return $this->createErrorResponse($response, 400, 'Tag name is required');
+
             $tagTable = R::dispense('tags');
             $tagTable->name = $requestData['name'];
 
             $newTagId = R::store($tagTable);
+
+            $result['data'] = isset($newTagId) ? R::load('tags', $newTagId) : [];
         } catch (Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
-
-        $result['data'] = isset($newTagId) ? R::load('tags', $newTagId) : [];
 
         return $this->createSuccessResponse($response, $result, 201);
     }
@@ -119,25 +115,22 @@ class TagsController extends Controller
      */
     public function deleteTag(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        // get tag id
-        $id = $request->getAttribute('id');
-
-        // load tag
-        $tag = R::load('tags', (int)$id);
-
-        // check tag
-        if (!$tag->id) {
-            return $this->createErrorResponse($response, 404, 'Tag not found');
-        }
-
         try {
+            $id = $request->getAttribute('id');
+            $tag = R::load('tags', (int)$id);
+
+            // check tag
+            if (!$tag->id) {
+                return $this->createErrorResponse($response, 404, 'Tag not found');
+            }
+
             // delete tag
             R::trash($tag);
-
-            return $this->createSuccessResponse($response, [], 204);
         } catch (Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
+
+        return $this->createSuccessResponse($response, [], 204);
     }
 
     /**
