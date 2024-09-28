@@ -25,6 +25,7 @@ return function (App $app) {
 
     //region tags routing
     $app->get('/tags/', [TagsController::class, 'getAllTags']);
+    $app->get('/tag/{id}/', [TagsController::class, 'getOneTag']);
     $app->post('/tags/', [TagsController::class, 'createTag']);
     $app->delete('/tags/{id}/', [TagsController::class, 'deleteTag']);
     $app->put('/tags/{id/}', [TagsController::class, 'updateTag']);

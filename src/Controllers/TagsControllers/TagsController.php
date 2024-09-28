@@ -46,6 +46,36 @@ class TagsController extends Controller
     }
 
     /**
+     * This method return data for one task
+     *
+     * METHOD: GET
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     */
+    public function getOneTag(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        try {
+            $tagId = (int)$request->getAttribute('id');
+            $tag = R::load('tags', $tagId); //load tag
+            $result = [];
+
+            //check task exist
+            if(!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found');
+
+            $result['data'] = $tag;
+            $result['success'] = true;
+            $result['errors'] = [];
+
+        } catch (Exception|\DivisionByZeroError $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
+        }
+
+        return $this->createSuccessResponse($response, $result);
+    }
+
+    /**
      * This method create tag
      *
      * METHOD: POST
