@@ -1,4 +1,3 @@
---Заполнение таблицы "Пользователи"
 INSERT INTO users (first_name, last_name, email, username, password, profile_picture)
 VALUES
     ('Иван', 'Иванов', 'ivan.ivanov@example.com', 'ivanivanov', 'password123', ''),
@@ -7,7 +6,6 @@ VALUES
     ('Елена', 'Кузнецова', 'elena.kuznetsova@example.com', 'elenakuznetsova', 'password456', ''),
     ('Дмитрий', 'Николаев', 'dmitriy.nikolaev@example.com', 'dmitriynikolaev', 'passw0rd', '');
 
---Заполнение таблицы "Проекты"
 INSERT INTO projects (title, creator_id, created_date)
 VALUES
     ('Проект 1', 1, DEFAULT),
@@ -16,7 +14,6 @@ VALUES
     ('Проект 4', 3, DEFAULT),
     ('Проект 5', 2, DEFAULT);
 
---Заполнение таблицы "Теги"
 INSERT INTO tags (title)
 VALUES
     ('Tag 1'),
@@ -25,7 +22,6 @@ VALUES
     ('Tag 4'),
     ('Tag 5');
 
---Заполнение таблицы "Задачи"
 INSERT INTO tasks (title, date_start, date_end, is_active, description, assignee_id, creator_id, project_id)
 VALUES
     ('Задача 1', '2023-10-01 09:00:00', '2023-10-02 17:00:00', 'Y', 'Описание задачи 1', 1, 1, 1),
