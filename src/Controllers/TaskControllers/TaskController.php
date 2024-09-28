@@ -21,8 +21,8 @@ class TaskController extends Controller
      */
     public function getAllTasks(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $page = empty($request->getQueryParams()['page']) ? 1 : (int) $request->getQueryParams()['page']; // get page
-        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int) $request->getQueryParams()['limit']; // get limit data per page
+        $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
+        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int)$request->getQueryParams()['limit']; // get limit data per page
         $offset = ($page - 1) * $limit; // offset
 
         try {
@@ -62,7 +62,7 @@ class TaskController extends Controller
             $result = [];
 
             //check task exist
-            if(!$task->id) return $this->createErrorResponse($response, 404, 'Task not found');
+            if (!$task->id) return $this->createErrorResponse($response, 404, 'Task not found');
 
             $result['data'] = $task;
             $result['success'] = true;
@@ -91,36 +91,29 @@ class TaskController extends Controller
         $errors = []; //error data
 
         //region validate
-        if (empty($requestData['title'])) {
-            $errors['title'] = 'Title is required';
-        }
+        if (empty($requestData['title']))
+            return $this->createErrorResponse($response, 400, 'Title is required');
 
-        if (empty($requestData['creator_id'])) {
-            $errors['creator_id'] = 'Creator id is required';
-        }
+        if (empty($requestData['creator_id']))
+            return $this->createErrorResponse($response, 400, 'Creator id is required');
 
-        if (empty($requestData['assignee_id'])) {
-            $errors['assignee_id'] = 'Assignee id is required';
-        }
+        if (empty($requestData['assignee_id']))
+            return $this->createErrorResponse($response, 400, 'Assignee id is required');
         //endregion
 
         //if validate success then add task
-        if (count($errors) === 0) {
-            try {
-                $tasksTable = R::dispense('tasks');
-                $tasksTable->title = $requestData['title'];
-                $tasksTable->description = $requestData['description'] ?? '';
-                $tasksTable->created_at = R::isoDateTime();
-                $tasksTable->is_active = $requestData['is_active'] ?? 'Y';
-                $tasksTable->assignee_id = $requestData['assignee_id'];
-                $tasksTable->creator_id = $requestData['creator_id'];
+        try {
+            $tasksTable = R::dispense('tasks');
+            $tasksTable->title = $requestData['title'];
+            $tasksTable->description = $requestData['description'] ?? '';
+            $tasksTable->created_at = R::isoDateTime();
+            $tasksTable->is_active = $requestData['is_active'] ?? 'Y';
+            $tasksTable->assignee_id = $requestData['assignee_id'];
+            $tasksTable->creator_id = $requestData['creator_id'];
 
-                $newTaskId = R::store($tasksTable);
-            } catch (Exception $e) {
-                return $this->createErrorResponse($response, 500, $e->getMessage());
-            }
-        } else {
-            return $this->createErrorResponse($response, 400, $errors);
+            $newTaskId = R::store($tasksTable);
+        } catch (Exception $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
         //json result

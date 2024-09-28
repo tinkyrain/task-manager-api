@@ -62,7 +62,7 @@ class TagsController extends Controller
             $result = [];
 
             //check task exist
-            if(!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found');
+            if (!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found');
 
             $result['data'] = $tag;
             $result['success'] = true;
@@ -91,24 +91,20 @@ class TagsController extends Controller
         $errors = []; //error data
 
         //region validate
-        if (empty($requestData['name'])) {
-            $errors['name'] = 'Name is required';
-        }
+        if (empty($requestData['name']))
+            return $this->createErrorResponse($response, 400, 'Tag name is required');
         //endregion
 
         //if validate success then add tag
-        if (count($errors) === 0) {
-            try {
-                $tagTable = R::dispense('tags');
-                $tagTable->name = $requestData['name'];
+        try {
+            $tagTable = R::dispense('tags');
+            $tagTable->name = $requestData['name'];
 
-                $newTagId = R::store($tagTable);
-            } catch (Exception $e) {
-                return $this->createErrorResponse($response, 500, $e->getMessage());
-            }
-        } else {
-            return $this->createErrorResponse($response, 400, $errors);
+            $newTagId = R::store($tagTable);
+        } catch (Exception $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
         }
+
 
         //json result
         $result = [

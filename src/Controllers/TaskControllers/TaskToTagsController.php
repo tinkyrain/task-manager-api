@@ -25,26 +25,14 @@ class TaskToTagsController extends Controller
         $tags = [];
 
         $taskId = (int)$request->getAttribute('task_id') ?? 0; // get task id from request
-        $tagsIds = (array)$bodyRequest['tags_id'] ?? []; // get tag id from request
+        $tagId = (array)$bodyRequest['tag_id'] ?? 0; // get tag id from request
 
         try {
             $task = R::load('tasks', $taskId); // get task data
-            if (!$task->id) $errors[] = 'Task with id ' . $taskId . ' not found'; // task validation
+            $tag = R::load('tags', $tagId);
 
-            // get tags data
-            foreach ($tagsIds as $tagId) {
-                $tag = R::load('tags', $tagId);
-
-                //tag validation
-                if ($tag->id) {
-                    $tags[] = $tag;
-                } else {
-                    $errors[] = 'Tag with id ' . $tagId . ' not found';
-                }
-            }
-
-            // data validation for exists
-            if (count($errors) > 0) return $this->createErrorResponse($response, 500, $errors);
+            if (!$task->id) return $this->createErrorResponse($response, 404, 'Task not found'); // task validation
+            if (!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found'); // task validation
 
             //connection tasks and tags
             foreach ($tags as $tag) {
@@ -55,7 +43,7 @@ class TaskToTagsController extends Controller
 
             $result = [
                 'data' => [],
-                'success' => count($errors) === 0,
+                'success' => true,
                 'errors' => $errors
             ];
 
