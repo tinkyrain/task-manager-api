@@ -20,31 +20,19 @@ class TaskToTagsController extends Controller
      */
     public function addTagsToTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $bodyRequest = json_decode($request->getBody()->getContents(), true); //get request data
-        $errors = [];
-        $tags = [];
-
-        $taskId = (int)$request->getAttribute('task_id') ?? 0; // get task id from request
-        $tagsIds = (array)$bodyRequest['tags_id'] ?? []; // get tag id from request
-
         try {
+            $bodyRequest = json_decode($request->getBody()->getContents(), true); //get request data
+            $tags = [];
+
+            $taskId = (int)$request->getAttribute('task_id') ?? 0; // get task id from request
+            $tagId = (array)$bodyRequest['tag_id'] ?? 0; // get tag id from request
+
+
             $task = R::load('tasks', $taskId); // get task data
-            if (!$task->id) $errors[] = 'Task with id ' . $taskId . ' not found'; // task validation
+            $tag = R::load('tags', $tagId);
 
-            // get tags data
-            foreach ($tagsIds as $tagId) {
-                $tag = R::load('tags', $tagId);
-
-                //tag validation
-                if ($tag->id) {
-                    $tags[] = $tag;
-                } else {
-                    $errors[] = 'Tag with id ' . $tagId . ' not found';
-                }
-            }
-
-            // data validation for exists
-            if (count($errors) > 0) return $this->createErrorResponse($response, 500, $errors);
+            if (!$task->id) return $this->createErrorResponse($response, 404, 'Task not found'); // task validation
+            if (!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found'); // task validation
 
             //connection tasks and tags
             foreach ($tags as $tag) {
@@ -52,17 +40,12 @@ class TaskToTagsController extends Controller
             }
 
             R::store($task);
-
-            $result = [
-                'data' => [],
-                'success' => count($errors) === 0,
-                'errors' => $errors
-            ];
-
-            return $this->createSuccessResponse($response, $result, 201);
         } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
+
+        return $this->createSuccessResponse($response, [], 201);
+
     }
 
     /**
@@ -76,10 +59,11 @@ class TaskToTagsController extends Controller
      */
     public function deleteTagsToTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $taskId = (int)$request->getAttribute('task_id'); // Get task id
-        $tagId = (int)$request->getAttribute('tag_id'); // Get tag id
-
         try {
+            $taskId = (int)$request->getAttribute('task_id'); // Get task id
+            $tagId = (int)$request->getAttribute('tag_id'); // Get tag id
+
+
             $task = R::load('tasks', $taskId); // load task
             $tag = R::load('tags', $tagId); // load tags
 
@@ -98,17 +82,11 @@ class TaskToTagsController extends Controller
             });
 
             R::store($task); // Save changes
-
-            $result = [
-                'data' => [],
-                'success' => true,
-                'errors' => []
-            ];
-
-            return $this->createSuccessResponse($response, $result, 200);
         } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
+
+        return $this->createSuccessResponse($response, [], 200);
     }
 
     /**
@@ -122,24 +100,25 @@ class TaskToTagsController extends Controller
      */
     public function getTagsToTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $taskId = (int)$request->getAttribute('task_id'); // Get task id
-        $task = R::load('tasks', $taskId); //load task
-        $result = [];
+        try {
+            $taskId = (int)$request->getAttribute('task_id'); // Get task id
+            $task = R::load('tasks', $taskId); //load task
+            $result = [];
 
-        //check task exist
-        if(!$task->id) return $this->createErrorResponse($response, 404, 'Task not found');
+            //check task exist
+            if (!$task->id) return $this->createErrorResponse($response, 404, 'Task not found');
 
-        $tags = $task->sharedTags;
+            $tags = $task->sharedTags;
 
-        foreach ($tags as $item) {
-            $result['data'][] = [
-                'id' => $item->id,
-                'title' => $item->title,
-            ];
+            foreach ($tags as $item) {
+                $result['data'][] = [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                ];
+            }
+        } catch (\Exception $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
         }
-
-        $result['success'] = true;
-        $result['errors'] = [];
 
         return $this->createSuccessResponse($response, $result, 200);
     }

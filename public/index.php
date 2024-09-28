@@ -1,5 +1,6 @@
 <?php
 
+use App\Handlers\Errors\JsonErrorHandler;
 use Slim\Factory\AppFactory;
 
 require __DIR__ . '/../vendor/autoload.php'; //include autoload
@@ -8,11 +9,12 @@ require __DIR__ . '/../vendor/autoload.php'; //include autoload
 $app = AppFactory::create();
 
 //region Middlewares
-$app->addErrorMiddleware(true, true, true); //enabled errors
+$app->addErrorMiddleware(true, true, true)
+    ->setDefaultErrorHandler(new JsonErrorHandler());
 //endregion
 
 //region ReadBean ORM
-require __DIR__ . '/../config/rb.php';
+require __DIR__ . '/../config/orm/rb.php';
 //endregion
 
 //region Routes

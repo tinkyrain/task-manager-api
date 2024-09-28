@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php'; //include autoload
-require_once 'db/db.php'; //include db file class
+require_once __DIR__ . '/../../vendor/autoload.php'; //include autoload
+require_once __DIR__ . '/../db/db.php'; //include db file class
 
 use RedBeanPHP\R;
 
