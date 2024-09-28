@@ -3,6 +3,7 @@
 namespace App\Controllers\AbstractController;
 
 use Psr\Http\Message\ResponseInterface;
+use RedBeanPHP\OODBBean;
 
 abstract class Controller
 {
@@ -16,7 +17,18 @@ abstract class Controller
      */
     public function createSuccessResponse(ResponseInterface $response, array $data, int $statusCode = 200): ResponseInterface
     {
-        $response->getBody()->write(json_encode($data));
+        $result = [];
+
+        if (!array_key_exists('data', $data)) {
+            $result['data'] = $data;
+        } else {
+            $result = $data;
+        }
+
+        $result['success'] = true;
+        $result['status_code'] = $statusCode;
+
+        $response->getBody()->write(json_encode($result));
         return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
     }
 
@@ -33,6 +45,7 @@ abstract class Controller
         $result = [
             'success' => false,
             'message' => $errorMessage,
+            'status_code' => $statusCode
         ];
         $response->getBody()->write(json_encode($result));
         return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);

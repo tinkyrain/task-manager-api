@@ -59,14 +59,11 @@ class TagsController extends Controller
         try {
             $tagId = (int)$request->getAttribute('id');
             $tag = R::load('tags', $tagId); //load tag
-            $result = [];
 
             //check task exist
             if (!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found');
 
             $result['data'] = $tag;
-            $result['success'] = true;
-            $result['errors'] = [];
 
         } catch (Exception|\DivisionByZeroError $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
@@ -105,13 +102,7 @@ class TagsController extends Controller
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
-
-        //json result
-        $result = [
-            'data' => isset($newTagId) ? R::load('tags', $newTagId) : [],
-            'success' => count($errors) === 0,
-            'errors' => $errors,
-        ];
+        $result['data'] = isset($newTagId) ? R::load('tags', $newTagId) : [];
 
         return $this->createSuccessResponse($response, $result, 201);
     }
@@ -143,12 +134,7 @@ class TagsController extends Controller
             // delete tag
             R::trash($tag);
 
-            $result = [
-                'success' => true,
-                'errors' => [],
-            ];
-
-            return $this->createSuccessResponse($response, $result, 204);
+            return $this->createSuccessResponse($response, [], 204);
         } catch (Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
@@ -166,36 +152,34 @@ class TagsController extends Controller
      */
     public function updateTag(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        $tagId = $request->getAttribute('id');
-        $requestData = json_decode($request->getBody()->getContents(), true);
-
-        // Load tag from DB
-        $tag = R::load('tags', $tagId);
-
-        // Check if tag exists
-        if (!$tag->id) {
-            return $this->createErrorResponse($response, 404, 'Tag not found');
-        }
-
-        // Update tag fields from request data
-        $tableColumns = array_keys(R::inspect('tags'));
-        foreach ($tableColumns as $column) {
-            if (isset($requestData[$column])) {
-                $tag->$column = $requestData[$column];
-            }
-        }
-
-        // Save changes and handle potential errors
         try {
+            $tagId = $request->getAttribute('id');
+            $requestData = json_decode($request->getBody()->getContents(), true);
+
+            // Load tag from DB
+            $tag = R::load('tags', $tagId);
+
+            // Check if tag exists
+            if (!$tag->id) {
+                return $this->createErrorResponse($response, 404, 'Tag not found');
+            }
+
+            // Update tag fields from request data
+            $tableColumns = array_keys(R::inspect('tags'));
+            foreach ($tableColumns as $column) {
+                if (isset($requestData[$column])) {
+                    $tag->$column = $requestData[$column];
+                }
+            }
+
+            // Save changes and handle potential errors
+
             R::store($tag);
-            $responseData = [
-                'data' => $tag,
-                'success' => true,
-                'errors' => [],
-            ];
-            return $this->createSuccessResponse($response, $responseData, 200);
+            $result['data'] = $tag;
         } catch (Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
+
+        return $this->createSuccessResponse($response, $result, 200);
     }
 }
