@@ -8,7 +8,7 @@ use RedBeanPHP\R;
 $dbConnection = DB::getDBConnection();
 
 //include in database
-R::setup("mysql:host=".$dbConnection['host'].";dbname=" . $dbConnection['database'], $dbConnection['user'], $dbConnection['password']);
+R::setup("pgsql:host=".$dbConnection['host'].";dbname=" . $dbConnection['database'], $dbConnection['user'], $dbConnection['password']);
 
 //check DB
 if (!R::testConnection()) {

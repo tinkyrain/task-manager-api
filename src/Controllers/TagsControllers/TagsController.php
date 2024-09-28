@@ -26,12 +26,12 @@ class TagsController extends Controller
         $offset = ($page - 1) * $limit; // offset
 
         try {
-            $tags = R::find('tags', 'LIMIT ?, ?', [$offset, $limit]); // get data
+            $tags = R::find('tags', 'LIMIT ? OFFSET ?', [$limit, $offset]); // get data
             $totalTags = R::count('tags'); // get total task count
 
             // Формируем результат
             $result = [
-                'data' => $tags,
+                'data' => array_values($tags),
                 'pagination' => [
                     'total' => $totalTags,
                     'page' => $page,
