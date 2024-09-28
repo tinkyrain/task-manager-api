@@ -46,6 +46,36 @@ class TaskController extends Controller
     }
 
     /**
+     * This method return data for one task
+     *
+     * METHOD: GET
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     */
+    public function getOneTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        try {
+            $taskId = (int)$request->getAttribute('id');
+            $task = R::load('tasks', $taskId); //load task
+            $result = [];
+
+            //check task exist
+            if(!$task->id) return $this->createErrorResponse($response, 404, 'Task not found');
+
+            $result['data'] = $task;
+            $result['success'] = true;
+            $result['errors'] = [];
+
+        } catch (Exception|\DivisionByZeroError $e) {
+            return $this->createErrorResponse($response, 500, $e->getMessage());
+        }
+
+        return $this->createSuccessResponse($response, $result);
+    }
+
+    /**
      * This method create task
      *
      * METHOD: POST

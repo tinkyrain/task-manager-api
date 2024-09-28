@@ -21,8 +21,8 @@ class TagsController extends Controller
      */
     public function getAllTags(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $page = empty($request->getQueryParams()['page']) ? 1 : (int) $request->getQueryParams()['page']; // get page
-        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int) $request->getQueryParams()['limit']; // get limit data per page
+        $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
+        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int)$request->getQueryParams()['limit']; // get limit data per page
         $offset = ($page - 1) * $limit; // offset
 
         try {
