@@ -12,7 +12,7 @@ R::setup("pgsql:host=".$dbConnection['host'].";dbname=" . $dbConnection['databas
 
 //check DB
 if (!R::testConnection()) {
-    die('Failed database connection');
+    throw new Exception("Cannot connect to database");
 }
 
 //freeze DB
