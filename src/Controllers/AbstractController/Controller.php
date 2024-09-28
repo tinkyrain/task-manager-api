@@ -25,14 +25,14 @@ abstract class Controller
      *
      * @param ResponseInterface $response
      * @param int $statusCode
-     * @param string|array $errorMessage
+     * @param string $errorMessage
      * @return ResponseInterface
      */
-    public function createErrorResponse(ResponseInterface $response, int $statusCode, string|array $errorMessage): ResponseInterface
+    public function createErrorResponse(ResponseInterface $response, int $statusCode, string $errorMessage): ResponseInterface
     {
         $result = [
             'success' => false,
-            'errors' => is_array($errorMessage) ? $errorMessage : [$errorMessage],
+            'message' => $errorMessage,
         ];
         $response->getBody()->write(json_encode($result));
         return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
