@@ -20,8 +20,6 @@ return function (App $app) {
     $app->post('/tasks/', [TaskController::class, 'createTask']);
     $app->delete('/tasks/{id}', [TaskController::class, 'deleteTask']);
     $app->put('/tasks/{id}', [TaskController::class, 'updateTask']);
-
-    $app->post('/tasks/{id}/tags/', [TaskToTagsController::class, 'addTagsToTask']); //add tag to task
     //endregion
 
     //region tags routing
@@ -30,5 +28,10 @@ return function (App $app) {
     $app->delete('/tags/{id}', [TagsController::class, 'deleteTag']);
     $app->put('/tags/{id}', [TagsController::class, 'updateTag']);
     //endregion
-};
 
+    //region task-to-tags routing
+    $app->post('/task/{task_id}/tag/', [TaskToTagsController::class, 'addTagsToTask']); //add tag to task
+    $app->delete('/task/{task_id}/tag/{tag_id}', [TaskToTagsController::class, 'deleteTagsToTask']); //delete tag in task
+    $app->get('/task/{task_id}/tags/', [TaskToTagsController::class, 'getTagsToTask']); //delete tag in task
+    //endregion
+};

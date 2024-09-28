@@ -26,12 +26,12 @@ class TaskController extends Controller
         $offset = ($page - 1) * $limit; // offset
 
         try {
-            $tasks = R::find('tasks', 'LIMIT ?, ?', [$offset, $limit]); // get data
+            $tasks = R::findAll('tasks', 'LIMIT ? OFFSET ?', [$limit, $offset]); // get data
             $totalTasks = R::count('tasks'); // get total task count
 
             // Формируем результат
             $result = [
-                'data' => $tasks,
+                'data' => array_values($tasks),
                 'pagination' => [
                     'total' => $totalTasks,
                     'page' => $page,
@@ -115,7 +115,6 @@ class TaskController extends Controller
      */
     public function deleteTask(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
-        $result = [];
         // get task id
         $id = $request->getAttribute('id');
 

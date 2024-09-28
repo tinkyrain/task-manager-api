@@ -2,7 +2,7 @@
 CREATE TYPE task_status AS ENUM ('Y', 'N');
 
 -- Создание таблицы пользователей
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     id                SERIAL PRIMARY KEY,
     first_name        VARCHAR(250) NOT NULL,
@@ -14,36 +14,60 @@ CREATE TABLE users
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- Создание таблицы проектов
+CREATE TABLE IF NOT EXISTS projects
+(
+    id           SERIAL PRIMARY KEY,
+    title        VARCHAR(250) NOT NULL,
+    creator_id   INT          NOT NULL,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES users (id)
+);
+
+
 -- Создание таблицы задач
-CREATE TABLE tasks
+CREATE TABLE IF NOT EXISTS tasks
 (
     id          SERIAL PRIMARY KEY,
     title       VARCHAR(250) NOT NULL,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- будет обновлено триггером
+    created_at  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP, -- будет обновлено триггером
     date_start  TIMESTAMP,
     date_end    TIMESTAMP,
     is_active   task_status DEFAULT 'Y',
     description TEXT,
-    assignee_id INT NOT NULL, -- ID пользователя, ответственного за задачу
-    creator_id  INT NOT NULL, -- ID пользователя, который создал задачу
+    assignee_id INT          NOT NULL,                 -- ID пользователя, ответственного за задачу
+    creator_id  INT          NOT NULL,                 -- ID пользователя, который создал задачу
+    project_id  INT          NOT NULL,
     FOREIGN KEY (assignee_id) REFERENCES users (id),
-    FOREIGN KEY (creator_id) REFERENCES users (id)
-);
-
--- Создание таблицы проектов
-CREATE TABLE projects
-(
-    id            SERIAL PRIMARY KEY,
-    title         VARCHAR(250) NOT NULL,
-    creator_id    INT NOT NULL,
-    created_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (creator_id) REFERENCES users (id)
+    FOREIGN KEY (creator_id) REFERENCES users (id),
+    FOREIGN KEY (project_id) REFERENCES projects (id)
 );
 
 -- Создание таблицы тегов
-CREATE TABLE tags
+CREATE TABLE IF NOT EXISTS tags
 (
     id    SERIAL PRIMARY KEY,
     title VARCHAR(250) NOT NULL
 );
+
+--Ассоциативная таблица для связи многие-ко-многим между задачами и тегами
+CREATE TABLE IF NOT EXISTS public.tags_tasks
+(
+    id integer NOT NULL DEFAULT nextval('tags_tasks_id_seq'::regclass),
+    tags_id integer,
+    tasks_id integer,
+    CONSTRAINT tags_tasks_pkey PRIMARY KEY (id),
+    CONSTRAINT uq_fe787f38bd3e357ed668df4c68817c6f4a8775ef UNIQUE (tags_id, tasks_id),
+    CONSTRAINT tags_tasks_tags_id_fkey FOREIGN KEY (tags_id)
+    REFERENCES public.tags (id) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+    DEFERRABLE,
+    CONSTRAINT tags_tasks_tasks_id_fkey FOREIGN KEY (tasks_id)
+    REFERENCES public.tasks (id) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+    DEFERRABLE
+)
