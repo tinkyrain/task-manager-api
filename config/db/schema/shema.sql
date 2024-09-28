@@ -1,24 +1,29 @@
+-- Создание типа ENUM для статуса задачи
+CREATE TYPE task_status AS ENUM ('Y', 'N');
+
+-- Создание таблицы пользователей
 CREATE TABLE users
 (
-    id                INT AUTO_INCREMENT PRIMARY KEY,
-    first_name        VARCHAR(100) NOT NULL,
-    last_name         VARCHAR(100) NOT NULL,
-    email             VARCHAR(255) NOT NULL UNIQUE,
+    id                SERIAL PRIMARY KEY,
+    first_name        VARCHAR(250) NOT NULL,
+    last_name         VARCHAR(250) NOT NULL,
+    email             VARCHAR(250) NOT NULL UNIQUE,
     username          VARCHAR(50)  NOT NULL UNIQUE,
-    password          VARCHAR(255) NOT NULL,
-    nickname          VARCHAR(50),
-    profile_picture   VARCHAR(255), -- Добавлено поле для изображения профиля
-    registration_date DATETIME DEFAULT CURRENT_TIMESTAMP
+    password          VARCHAR(250) NOT NULL,
+    profile_picture   VARCHAR(255),
+    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Создание таблицы задач
 CREATE TABLE tasks
 (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    title       VARCHAR(255) NOT NULL,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    due_date    DATETIME,
-    is_active   ENUM ('Y', 'N') DEFAULT 'Y',
+    id          SERIAL PRIMARY KEY,
+    title       VARCHAR(250) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- будет обновлено триггером
+    date_start  TIMESTAMP,
+    date_end    TIMESTAMP,
+    is_active   task_status DEFAULT 'Y',
     description TEXT,
     assignee_id INT NOT NULL, -- ID пользователя, ответственного за задачу
     creator_id  INT NOT NULL, -- ID пользователя, который создал задачу
@@ -26,8 +31,19 @@ CREATE TABLE tasks
     FOREIGN KEY (creator_id) REFERENCES users (id)
 );
 
+-- Создание таблицы проектов
+CREATE TABLE projects
+(
+    id            SERIAL PRIMARY KEY,
+    title         VARCHAR(250) NOT NULL,
+    creator_id    INT NOT NULL,
+    created_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES users (id)
+);
+
+-- Создание таблицы тегов
 CREATE TABLE tags
 (
-    id   INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    id    SERIAL PRIMARY KEY,
+    title VARCHAR(250) NOT NULL
 );
