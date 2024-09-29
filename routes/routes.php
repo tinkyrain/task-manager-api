@@ -1,6 +1,6 @@
 <?php
 
-use App\Controllers\TagsControllers\TagsController;
+use App\Controllers\TagsControllers\TagController;
 use App\Controllers\TaskControllers\TaskController;
 use App\Controllers\TaskControllers\TaskToTagsController;
 use Psr\Http\Message\RequestInterface;
@@ -23,11 +23,11 @@ return function (App $app) {
         //endregion
 
         //region tags routing
-        $app->get('/tags/', [TagsController::class, 'getAll']);
-        $app->get('/tag/{id}/', [TagsController::class, 'getOne']);
-        $app->post('/tags/', [TagsController::class, 'create']);
-        $app->delete('/tags/{id}/', [TagsController::class, 'delete']);
-        $app->put('/tags/{id}/', [TagsController::class, 'update']);
+        $app->get('/tags/', [TagController::class, 'getAll']);
+        $app->get('/tag/{id}/', [TagController::class, 'getOne']);
+        $app->post('/tags/', [TagController::class, 'create']);
+        $app->delete('/tags/{id}/', [TagController::class, 'delete']);
+        $app->put('/tags/{id}/', [TagController::class, 'update']);
         //endregion
 
         //region task-to-tags routing

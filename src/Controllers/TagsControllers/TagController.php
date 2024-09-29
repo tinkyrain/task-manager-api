@@ -8,7 +8,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
 
-class TagsController extends Controller
+class TagController extends Controller
 {
     /**
      * This method return all tags
