@@ -4,8 +4,69 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "958ba27095372a55f731fdbb05ca820e",
+    "content-hash": "3f3990c9dafd808b082632f06eb239b7",
     "packages": [
+        {
+            "name": "crada/php-apidoc",
+            "version": "1.3.9",
+            "target-dir": "Crada/Apidoc",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/calinrada/php-apidoc.git",
+                "reference": "e5c6f46cfbf3b6c20e7f55c02cc8345b65ed873f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/calinrada/php-apidoc/zipball/e5c6f46cfbf3b6c20e7f55c02cc8345b65ed873f",
+                "reference": "e5c6f46cfbf3b6c20e7f55c02cc8345b65ed873f",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Crada": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Calin Rada",
+                    "email": "rada.calin@gmail.com"
+                },
+                {
+                    "name": "Borja Santos-Diez",
+                    "email": "borja@santosdiez.es"
+                },
+                {
+                    "name": "Kevin Saliou",
+                    "email": "kevin@saliou.name"
+                }
+            ],
+            "description": "Generate documentation for php API based application. No dependency. No framework required.",
+            "homepage": "https://github.com/calinrada/php-apidoc",
+            "keywords": [
+                "api",
+                "documentation",
+                "generator",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/calinrada/php-apidoc/issues",
+                "source": "https://github.com/calinrada/php-apidoc/tree/master"
+            },
+            "time": "2018-03-09T15:53:40+00:00"
+        },
         {
             "name": "fig/http-message-util",
             "version": "1.1.5",
