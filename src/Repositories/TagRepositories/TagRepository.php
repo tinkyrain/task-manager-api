@@ -47,15 +47,23 @@ class TagRepository
      */
     public function createTag(array $data = []): OODBBean|array
     {
-        // Validate tag name
-        if (empty($data['title'])) throw new Exception('Tag name is required', 400);
+        try {
+            R::begin();
 
-        // Create a new tag
-        $tagTable = R::dispense('tags');
-        $tagTable->title = $data['title'];
-        $newTagId = R::store($tagTable);
+            // Validate tag name
+            if (empty($data['title'])) throw new Exception('Tag name is required', 400);
 
-        return isset($newTagId) ? R::load('tags', $newTagId) : [];
+            // Create a new tag
+            $tagTable = R::dispense('tags');
+            $tagTable->title = $data['title'];
+            $newTagId = R::store($tagTable);
+
+            R::commit();
+            return isset($newTagId) ? R::load('tags', $newTagId) : [];
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
+        }
     }
 
     /**
@@ -68,20 +76,28 @@ class TagRepository
      */
     public function updateTag(int $id, array $data): bool
     {
-        // Load the tag by ID
-        $tag = $this->getTagById($id);
+        try {
+            R::begin();
 
-        // Update tag fields
-        foreach ($data as $key => $value) {
-            if (isset($tag->$key)) {
-                $tag->$key = $value;
+            // Load the tag by ID
+            $tag = $this->getTagById($id);
+
+            // Update tag fields
+            foreach ($data as $key => $value) {
+                if (isset($tag->$key)) {
+                    $tag->$key = $value;
+                }
             }
+
+            // Save changes to the database
+            R::store($tag);
+            R::commit();
+
+            return true;
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
         }
-
-        // Save changes to the database
-        R::store($tag);
-
-        return true;
     }
 
     /**
@@ -93,11 +109,20 @@ class TagRepository
      */
     public function deleteTag(int $id): bool
     {
-        // Load the tag by ID
-        $tag = $this->getTagById($id);
+        try {
+            R::begin();
 
-        // Delete the tag from the database
-        return (bool)R::trash($tag);
+            // Load the tag by ID
+            $tag = $this->getTagById($id);
+
+            R::commit();
+
+            // Delete the tag from the database
+            return (bool)R::trash($tag);
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
+        }
     }
 
     /**
