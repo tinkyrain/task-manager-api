@@ -31,9 +31,9 @@ return function (App $app) {
         //endregion
 
         //region task-to-tags routing
-        $app->post('/task/{task_id}/tag/', [TaskToTagController::class, 'add']); //add tag to task
-        $app->delete('/task/{task_id}/tag/{tag_id}/', [TaskToTagController::class, 'delete']); //delete tag in task
-        $app->get('/task/{task_id}/tags/', [TaskToTagController::class, 'getAll']); //delete tag in task
+        $app->post('/task/{task_id}/tag/', [TaskToTagController::class, 'add']);
+        $app->delete('/task/{task_id}/tag/{tag_id}/', [TaskToTagController::class, 'delete']);
+        $app->get('/task/{task_id}/tags/', [TaskToTagController::class, 'getAll']);
         //endregion
     });
     //endregion
