@@ -33,7 +33,7 @@ class TaskRepository
     public function getTaskById(int $id): OODBBean
     {
         $task = R::load('tasks', $id);
-        if (!$task->id) throw new Exception('Task not found', 400);
+        if (!$task->id) throw new HttpException('Task not found', 400);
         return $task;
     }
 

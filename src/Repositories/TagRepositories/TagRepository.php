@@ -2,7 +2,6 @@
 
 namespace App\Repositories\TagRepositories;
 
-use Exception;
 use HttpException;
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
@@ -33,7 +32,7 @@ class TagRepository
     public function getTagById(int $id): OODBBean
     {
         $tag = R::load('tags', $id);
-        if (!$tag->id) throw new Exception('Tag not found', 400);
+        if (!$tag->id) throw new HttpException('Tag not found', 400);
         return $tag;
     }
 
