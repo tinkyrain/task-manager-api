@@ -4,6 +4,7 @@ namespace App\Repositories\TaskRepositories;
 
 use HttpException;
 use RedBeanPHP\R;
+use RedBeanPHP\RedException\SQL;
 
 class TaskToTagRepository
 {
@@ -13,7 +14,7 @@ class TaskToTagRepository
      * @param int $taskId
      * @param int $tagId
      * @return bool
-     * @throws Exception
+     * @throws HttpException|SQL
      */
     public function addTaskToTag(int $taskId, int $tagId): bool
     {
@@ -22,8 +23,8 @@ class TaskToTagRepository
         $tag = R::load('tags', $tagId);
 
         // Exist check
-        if (!$task->id) throw new HttpException('Task not found', 404);
-        if (!$tag->id) throw new HttpException('Tag not found', 404);
+        if (!$task->id) throw new HttpException('Task not found', 400);
+        if (!$tag->id) throw new HttpException('Tag not found', 400);
 
         $task->sharedTags[] = $tag;
 
@@ -38,7 +39,7 @@ class TaskToTagRepository
      * @param int $taskId
      * @param int $tagId
      * @return bool
-     * @throws Exception
+     * @throws HttpException|SQL
      */
     public function deleteTaskToTag(int $taskId, int $tagId): bool
     {
@@ -47,8 +48,8 @@ class TaskToTagRepository
         $tag = R::load('tags', $tagId);
 
         // Exist check
-        if (!$task->id) throw new HttpException('Task not found', 404);
-        if (!$tag->id) throw new HttpException('Tag not found', 404);
+        if (!$task->id) throw new HttpException('Task not found', 400);
+        if (!$tag->id) throw new HttpException('Tag not found', 400);
 
         // Delete connection
         $task->sharedTags = array_filter($task->sharedTags, function ($sharedTag) use ($tag) {
@@ -65,7 +66,7 @@ class TaskToTagRepository
      *
      * @param int $taskId
      * @return array
-     * @throws Exception
+     * @throws HttpException
      */
     public function getTagsByTask(int $taskId): array
     {
@@ -73,7 +74,7 @@ class TaskToTagRepository
         $task = R::load('tasks', $taskId);
 
         // Exist check
-        if (!$task->id) throw new HttpException('Task not found', 404);
+        if (!$task->id) throw new HttpException('Task not found', 400);
 
         $tags = $task->sharedTags;
 
