@@ -19,7 +19,7 @@ class TagsController extends Controller
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function getAllTags(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function getAll(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
@@ -54,7 +54,7 @@ class TagsController extends Controller
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function getOneTag(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function getOne(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $tagId = (int)$request->getAttribute('id');
@@ -81,7 +81,7 @@ class TagsController extends Controller
      * @param $args
      * @return ResponseInterface
      */
-    public function createTag(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function create(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
         try {
             $requestData = json_decode($request->getBody()->getContents(), true); //get request data
@@ -113,7 +113,7 @@ class TagsController extends Controller
      * @param $args
      * @return ResponseInterface
      */
-    public function deleteTag(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function delete(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
         try {
             $id = $request->getAttribute('id');
@@ -143,7 +143,7 @@ class TagsController extends Controller
      * @param $args
      * @return ResponseInterface
      */
-    public function updateTag(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function update(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
         try {
             $tagId = $request->getAttribute('id');

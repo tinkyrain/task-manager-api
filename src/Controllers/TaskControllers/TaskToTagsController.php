@@ -18,7 +18,7 @@ class TaskToTagsController extends Controller
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function addTagsToTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function add(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $bodyRequest = json_decode($request->getBody()->getContents(), true); //get request data
@@ -57,7 +57,7 @@ class TaskToTagsController extends Controller
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function deleteTagsToTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function delete(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $taskId = (int)$request->getAttribute('task_id'); // Get task id
@@ -98,7 +98,7 @@ class TaskToTagsController extends Controller
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function getTagsToTask(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function getAll(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $taskId = (int)$request->getAttribute('task_id'); // Get task id
