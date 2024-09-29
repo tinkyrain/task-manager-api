@@ -4,6 +4,7 @@ namespace App\Controllers\TaskControllers;
 
 use App\Controllers\AbstractController\AbstractController;
 use App\Repositories\TaskRepositories\TaskToTagRepository;
+use Exception;
 use HttpException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -36,8 +37,8 @@ class TaskToTagController extends AbstractController
             $taskId = $request->getAttribute('task_id');
 
             $this->taskToTagRepository->addTaskToTag($taskId, $tagId);
-        } catch (HttpException|SQL $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+        } catch (Exception|SQL $e) {
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, [], 201);
@@ -59,8 +60,8 @@ class TaskToTagController extends AbstractController
             $tagId = $request->getAttribute('tag_id');
 
             $this->taskToTagRepository->deleteTaskToTag($taskId, $tagId);
-        } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+        } catch (Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, [], 200);
@@ -82,8 +83,8 @@ class TaskToTagController extends AbstractController
             $tags = $this->taskToTagRepository->getTagsByTask($taskId);
 
             $result['data'] = $tags;
-        } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+        } catch (Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 200);

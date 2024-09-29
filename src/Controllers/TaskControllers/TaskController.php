@@ -43,7 +43,7 @@ class TaskController extends AbstractController
                 ],
             ];
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result);
@@ -65,7 +65,7 @@ class TaskController extends AbstractController
             $task = $this->taskRepository->getTaskById($taskId);
             $result['data'] = $task;
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result);
@@ -87,7 +87,7 @@ class TaskController extends AbstractController
             $newTaskId = $this->taskRepository->createTask($requestData);
             $result['data'] = $this->taskRepository->getTaskById($newTaskId);
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 201);
@@ -108,7 +108,7 @@ class TaskController extends AbstractController
             $id = $request->getAttribute('id');
             $this->taskRepository->deleteTask($id);
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, [], 204);
@@ -131,7 +131,7 @@ class TaskController extends AbstractController
             $this->taskRepository->updateTask($taskId, $requestData); // Update task fields
             $result['data'] = $this->taskRepository->getTaskById($taskId);
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 200);

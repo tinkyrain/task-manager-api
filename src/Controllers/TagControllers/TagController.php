@@ -43,7 +43,7 @@ class TagController extends AbstractController
                 ],
             ];
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result);
@@ -66,7 +66,7 @@ class TagController extends AbstractController
 
             $result['data'] = $tag;
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result);
@@ -95,7 +95,7 @@ class TagController extends AbstractController
 
             $result['data'] = $newTag;
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 201);
@@ -116,7 +116,7 @@ class TagController extends AbstractController
             $id = $request->getAttribute('id');
             $this->tagRepository->deleteTag($id);
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, [], 204);
@@ -142,7 +142,7 @@ class TagController extends AbstractController
 
             $result['data'] = $this->tagRepository->getTagById($tagId);
         } catch (\Exception $e) {
-            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
+            return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 200);
