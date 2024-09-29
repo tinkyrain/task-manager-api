@@ -8,7 +8,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
 
-class TaskAbstractController extends AbstractController
+class TaskController extends AbstractController
 {
     /**
      * This method return all tasks
@@ -85,7 +85,6 @@ class TaskAbstractController extends AbstractController
     {
         try {
             $requestData = json_decode($request->getBody()->getContents(), true); //get request data
-            $errors = []; //error data
 
             //region validate
             if (empty($requestData['title']))

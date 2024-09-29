@@ -7,7 +7,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
 
-class TaskToTagAbstractController extends AbstractController
+class TaskToTagController extends AbstractController
 {
     /**
      * This method add task to tag connection
