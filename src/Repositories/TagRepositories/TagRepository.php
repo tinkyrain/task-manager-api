@@ -57,8 +57,10 @@ class TagRepository
             $tagTable->title = $data['title'];
             $newTagId = R::store($tagTable);
 
+            $result = isset($newTagId) ? R::load('tags', $newTagId) : [];
+
             R::commit();
-            return isset($newTagId) ? R::load('tags', $newTagId) : [];
+            return $result;
         } catch (Exception $e) {
             R::rollback();
             throw new Exception($e->getMessage(), $e->getCode() ?? 500);
@@ -114,10 +116,11 @@ class TagRepository
             // Load the tag by ID
             $tag = $this->getTagById($id);
 
-            R::commit();
+            $result = (bool)R::trash($tag);
 
+            R::commit();
             // Delete the tag from the database
-            return (bool)R::trash($tag);
+            return $result;
         } catch (Exception $e) {
             R::rollback();
             throw new Exception($e->getMessage(), $e->getCode() ?? 500);
