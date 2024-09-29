@@ -3,7 +3,6 @@
 namespace App\Repositories\TagRepositories;
 
 use Exception;
-use HttpException;
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
 use RedBeanPHP\RedException\SQL;

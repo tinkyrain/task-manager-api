@@ -46,23 +46,34 @@ class TaskRepository
      */
     public function createTask(array $data): int
     {
-        // Validate task data
-        if (empty($data['title'])) throw new Exception('Title is required', 400);
-        if (empty($data['creator_id'])) throw new Exception('Creator id is required', 400);
-        if (empty($data['assignee_id'])) throw new Exception('Assignee id is required', 400);
-        if (empty($data['project_id'])) throw new Exception('Project id is required', 400);
+        try {
+            R::begin();
 
-        // Create a new task
-        $taskTable = R::dispense('tasks');
-        $taskTable->title = $data['title'];
-        $taskTable->description = $data['description'] ?? '';
-        $taskTable->created_at = R::isoDateTime();
-        $taskTable->is_active = $data['is_active'] ?? 'Y';
-        $taskTable->assignee_id = $data['assignee_id'];
-        $taskTable->creator_id = $data['creator_id'];
-        $taskTable->project_id = $data['project_id'];
+            // Validate task data
+            if (empty($data['title'])) throw new Exception('Title is required', 400);
+            if (empty($data['creator_id'])) throw new Exception('Creator id is required', 400);
+            if (empty($data['assignee_id'])) throw new Exception('Assignee id is required', 400);
+            if (empty($data['project_id'])) throw new Exception('Project id is required', 400);
 
-        return R::store($taskTable);
+            // Create a new task
+            $taskTable = R::dispense('tasks');
+            $taskTable->title = $data['title'];
+            $taskTable->description = $data['description'] ?? '';
+            $taskTable->created_at = R::isoDateTime();
+            $taskTable->is_active = $data['is_active'] ?? 'Y';
+            $taskTable->assignee_id = $data['assignee_id'];
+            $taskTable->creator_id = $data['creator_id'];
+            $taskTable->project_id = $data['project_id'];
+
+            $newTask = R::store($taskTable);
+
+            R::commit();
+
+            return $newTask;
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
+        }
     }
 
     /**
@@ -75,20 +86,28 @@ class TaskRepository
      */
     public function updateTask(int $id, array $data): bool
     {
-        // Load the task by ID
-        $task = $this->getTaskById($id);
+        try {
+            R::begin();
 
-        // Update task fields
-        foreach ($data as $key => $value) {
-            if (isset($task->$key)) {
-                $task->$key = $value;
+            // Load the task by ID
+            $task = $this->getTaskById($id);
+
+            // Update task fields
+            foreach ($data as $key => $value) {
+                if (isset($task->$key)) {
+                    $task->$key = $value;
+                }
             }
+
+            // Save changes to the database
+            R::store($task);
+            R::commit();
+
+            return true;
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
         }
-
-        // Save changes to the database
-        R::store($task);
-
-        return true;
     }
 
     /**
@@ -100,11 +119,21 @@ class TaskRepository
      */
     public function deleteTask(int $id): bool
     {
-        // Load the task by ID
-        $task = $this->getTaskById($id);
+        try {
+            R::begin();
 
-        // Delete the task from the database
-        return (bool)R::trash($task);
+            // Load the task by ID
+            $task = $this->getTaskById($id);
+
+            $result = (bool)R::trash($task);
+
+            R::commit();
+            // Delete the task from the database
+            return $result;
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
+        }
     }
 
     /**
