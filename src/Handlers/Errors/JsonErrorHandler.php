@@ -29,7 +29,7 @@ class JsonErrorHandler
         }
 
         $response = $response->withStatus($statusCode);
-        $response->getBody()->write(json_encode($data));
+        $response->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

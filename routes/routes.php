@@ -12,6 +12,18 @@ return function (App $app) {
         return $response;
     });
 
+    $app->get('/api-docs/', function (RequestInterface $request, ResponseInterface $response) {
+        $filePath = __DIR__ . '/../api-docs/index.html';
+
+        if (file_exists($filePath)) {
+            $html = file_get_contents($filePath);
+            $response->getBody()->write($html);
+            return $response->withHeader('Content-Type', 'text/html');
+        } else {
+            throw new Exception('File not found', 404);
+        }
+    });
+
     //region api version V1
     $app->group('/v1', function () use ($app) {
         //region task routing
