@@ -2,6 +2,7 @@
 
 namespace App\Repositories\TaskRepositories;
 
+use Exception;
 use HttpException;
 use RedBeanPHP\R;
 use RedBeanPHP\RedException\SQL;
@@ -14,7 +15,8 @@ class TaskToTagRepository
      * @param int $taskId
      * @param int $tagId
      * @return bool
-     * @throws HttpException|SQL
+     * @throws SQL
+     * @throws Exception
      */
     public function addTaskToTag(int $taskId, int $tagId): bool
     {
@@ -23,8 +25,8 @@ class TaskToTagRepository
         $tag = R::load('tags', $tagId);
 
         // Exist check
-        if (!$task->id) throw new HttpException('Task not found', 400);
-        if (!$tag->id) throw new HttpException('Tag not found', 400);
+        if (!$task->id) throw new Exception('Task not found', 400);
+        if (!$tag->id) throw new Exception('Tag not found', 400);
 
         $task->sharedTags[] = $tag;
 
@@ -39,7 +41,8 @@ class TaskToTagRepository
      * @param int $taskId
      * @param int $tagId
      * @return bool
-     * @throws HttpException|SQL
+     * @throws SQL
+     * @throws Exception
      */
     public function deleteTaskToTag(int $taskId, int $tagId): bool
     {
@@ -48,8 +51,8 @@ class TaskToTagRepository
         $tag = R::load('tags', $tagId);
 
         // Exist check
-        if (!$task->id) throw new HttpException('Task not found', 400);
-        if (!$tag->id) throw new HttpException('Tag not found', 400);
+        if (!$task->id) throw new Exception('Task not found', 400);
+        if (!$tag->id) throw new Exception('Tag not found', 400);
 
         // Delete connection
         $task->sharedTags = array_filter($task->sharedTags, function ($sharedTag) use ($tag) {

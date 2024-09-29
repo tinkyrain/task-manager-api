@@ -33,7 +33,7 @@ class TaskRepository
     public function getTaskById(int $id): OODBBean
     {
         $task = R::load('tasks', $id);
-        if (!$task->id) throw new HttpException('Task not found', 400);
+        if (!$task->id) throw new Exception('Task not found', 400);
         return $task;
     }
 
@@ -47,10 +47,10 @@ class TaskRepository
     public function createTask(array $data): int
     {
         // Validate task data
-        if (empty($data['title'])) throw new HttpException('Title is required', 400);
-        if (empty($data['creator_id'])) throw new HttpException('Creator id is required', 400);
-        if (empty($data['assignee_id'])) throw new HttpException('Assignee id is required', 400);
-        if (empty($data['project_id'])) throw new HttpException('Project id is required', 400);
+        if (empty($data['title'])) throw new Exception('Title is required', 400);
+        if (empty($data['creator_id'])) throw new Exception('Creator id is required', 400);
+        if (empty($data['assignee_id'])) throw new Exception('Assignee id is required', 400);
+        if (empty($data['project_id'])) throw new Exception('Project id is required', 400);
 
         // Create a new task
         $taskTable = R::dispense('tasks');

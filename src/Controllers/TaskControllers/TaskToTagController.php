@@ -4,9 +4,10 @@ namespace App\Controllers\TaskControllers;
 
 use App\Controllers\AbstractController\AbstractController;
 use App\Repositories\TaskRepositories\TaskToTagRepository;
+use HttpException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use RedBeanPHP\R;
+use RedBeanPHP\RedException\SQL;
 
 class TaskToTagController extends AbstractController
 {
@@ -30,11 +31,12 @@ class TaskToTagController extends AbstractController
     {
         try {
             $bodyRequest = json_decode($request->getBody()->getContents(), true);
-            $tagId = (int)$bodyRequest['tag_id'];
 
+            $tagId = (int)$bodyRequest['tag_id'];
             $taskId = $request->getAttribute('task_id');
+
             $this->taskToTagRepository->addTaskToTag($taskId, $tagId);
-        } catch (\Exception $e) {
+        } catch (HttpException|SQL $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
