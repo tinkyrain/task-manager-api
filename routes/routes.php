@@ -1,7 +1,7 @@
 <?php
 
 use App\Controllers\TagControllers\TagController;
-use App\Controllers\TaskControllers\TaskAbstractController;
+use App\Controllers\TaskControllers\TaskController;
 use App\Controllers\TaskControllers\TaskToTagController;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -15,11 +15,11 @@ return function (App $app) {
     //region api version V1
     $app->group('/v1', function () use ($app) {
         //region task routing
-        $app->get('/tasks/', [TaskAbstractController::class, 'getAll']);
-        $app->get('/task/{id}/', [TaskAbstractController::class, 'getOne']);
-        $app->post('/task/', [TaskAbstractController::class, 'create']);
-        $app->delete('/task/{id}/', [TaskAbstractController::class, 'delete']);
-        $app->put('/task/{id}/', [TaskAbstractController::class, 'update']);
+        $app->get('/tasks/', [TaskController::class, 'getAll']);
+        $app->get('/task/{id}/', [TaskController::class, 'getOne']);
+        $app->post('/task/', [TaskController::class, 'create']);
+        $app->delete('/task/{id}/', [TaskController::class, 'delete']);
+        $app->put('/task/{id}/', [TaskController::class, 'update']);
         //endregion
 
         //region tags routing

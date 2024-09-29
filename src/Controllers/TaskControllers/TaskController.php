@@ -3,6 +3,7 @@
 namespace App\Controllers\TaskControllers;
 
 use App\Controllers\AbstractController\AbstractController;
+use App\Repositories\TaskRepositories\TaskRepository;
 use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -10,6 +11,13 @@ use RedBeanPHP\R;
 
 class TaskController extends AbstractController
 {
+    protected TaskRepository $taskRepository;
+
+    public function __construct()
+    {
+        $this->taskRepository = new TaskRepository();
+    }
+
     /**
      * This method return all tasks
      *
@@ -21,24 +29,20 @@ class TaskController extends AbstractController
      */
     public function getAll(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
-        $limit = empty($request->getQueryParams()['limit']) ? 25 : (int)$request->getQueryParams()['limit']; // get limit data per page
-        $offset = ($page - 1) * $limit; // offset
-
         try {
-            $tasks = R::findAll('tasks', 'LIMIT ? OFFSET ?', [$limit, $offset]); // get data
-            $totalTasks = R::count('tasks'); // get total task count
+            $page = $request->getQueryParams()['page'] ?? 1;
+            $limit = $request->getQueryParams()['limit'] ?? 25;
+            $tasks = $this->taskRepository->getAllTasks($page, $limit);
 
-            // Формируем результат
             $result = [
-                'data' => array_values($tasks),
+                'data' => $tasks,
                 'pagination' => [
-                    'total' => $totalTasks,
+                    'total' => $this->taskRepository->getTotalTasks(),
                     'page' => $page,
                     'limit' => $limit,
                 ],
             ];
-        } catch (Exception|\DivisionByZeroError $e) {
+        } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
@@ -57,14 +61,10 @@ class TaskController extends AbstractController
     public function getOne(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $taskId = (int)$request->getAttribute('id');
-            $task = R::load('tasks', $taskId); //load task
-            $result = [];
-
-            //check task exist
-            if (!$task->id) return $this->createErrorResponse($response, 404, 'Task not found');
+            $taskId = $request->getAttribute('id');
+            $task = $this->taskRepository->getTaskById($taskId);
             $result['data'] = $task;
-        } catch (Exception|\DivisionByZeroError $e) {
+        } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
@@ -78,40 +78,15 @@ class TaskController extends AbstractController
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param $args
      * @return ResponseInterface
      */
-    public function create(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function create(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $requestData = json_decode($request->getBody()->getContents(), true); //get request data
-
-            //region validate
-            if (empty($requestData['title']))
-                return $this->createErrorResponse($response, 400, 'Title is required');
-
-            if (empty($requestData['creator_id']))
-                return $this->createErrorResponse($response, 400, 'Creator id is required');
-
-            if (empty($requestData['assignee_id']))
-                return $this->createErrorResponse($response, 400, 'Assignee id is required');
-            //endregion
-
-            //if validate success then add task
-
-            $tasksTable = R::dispense('tasks');
-            $tasksTable->title = $requestData['title'];
-            $tasksTable->description = $requestData['description'] ?? '';
-            $tasksTable->created_at = R::isoDateTime();
-            $tasksTable->is_active = $requestData['is_active'] ?? 'Y';
-            $tasksTable->assignee_id = $requestData['assignee_id'];
-            $tasksTable->creator_id = $requestData['creator_id'];
-
-            $newTaskId = R::store($tasksTable);
-
-            $result['data'] = isset($newTaskId) ? R::load('tasks', $newTaskId) : [];
-
-        } catch (Exception $e) {
+            $requestData = json_decode($request->getBody()->getContents(), true);
+            $newTaskId = $this->taskRepository->createTask($requestData);
+            $result['data'] = $this->taskRepository->getTaskById($newTaskId);
+        } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
@@ -125,27 +100,15 @@ class TaskController extends AbstractController
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param $args
      * @return ResponseInterface
      */
-    public function delete(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function delete(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            // get task id
-            $taskId = (int)$request->getAttribute('id') ?? 0;
-
-            // load task
-            $task = R::load('tasks', $taskId);
-
-            // check task
-            if (!$task->id) {
-                return $this->createErrorResponse($response, 404, 'Task not found');
-            }
-
-            // delete task
-            R::trash($task);
-        } catch (Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            $id = $request->getAttribute('id');
+            $this->taskRepository->deleteTask($id);
+        } catch (\Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, [], 204);
@@ -156,42 +119,21 @@ class TaskController extends AbstractController
      *
      * METHOD: PUT
      *
-     *
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param $args
      * @return ResponseInterface
      */
-    public function update(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function update(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $taskId = (int)$request->getAttribute('id');
+            $taskId = $request->getAttribute('id');
             $requestData = json_decode($request->getBody()->getContents(), true);
-
-            // Load task from DB
-            $task = R::load('tasks', $taskId);
-
-            // Check if task exists
-            if (!$task->id) {
-                return $this->createErrorResponse($response, 404, 'Task not found');
-            }
-
-            // Update task fields from request data
-            $tableColumns = array_keys(R::inspect('tasks'));
-            foreach ($tableColumns as $column) {
-                if (isset($requestData[$column])) {
-                    $task->$column = $requestData[$column];
-                }
-            }
-
-            // Save changes and handle potential errors
-            R::store($task);
-
-            $responseData['data'] = $task;
-        } catch (Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            $this->taskRepository->updateTask($taskId, $requestData); // Update task fields
+            $result['data'] = $this->taskRepository->getTaskById($taskId);
+        } catch (\Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
         }
 
-        return $this->createSuccessResponse($response, $responseData, 200);
+        return $this->createSuccessResponse($response, $result, 200);
     }
 }
