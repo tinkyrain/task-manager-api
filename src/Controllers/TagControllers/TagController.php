@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers\TagsControllers;
+namespace App\Controllers\TagControllers;
 
 use App\Controllers\AbstractController\Controller;
 use Exception;

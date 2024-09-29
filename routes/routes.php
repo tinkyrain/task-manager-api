@@ -1,6 +1,6 @@
 <?php
 
-use App\Controllers\TagsControllers\TagController;
+use App\Controllers\TagControllers\TagController;
 use App\Controllers\TaskControllers\TaskController;
 use App\Controllers\TaskControllers\TaskToTagController;
 use Psr\Http\Message\RequestInterface;
