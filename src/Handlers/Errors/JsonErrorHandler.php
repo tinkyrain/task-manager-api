@@ -19,7 +19,7 @@ class JsonErrorHandler
             'status_code' => $exception->getCode(),
         ];
 
-        // Установить код состояния в зависимости от типа исключения
+        // Set status code
         if ($exception instanceof HttpException) {
             $statusCode = $exception->getCode();
         } elseif ($exception instanceof HttpMethodNotAllowedException) {

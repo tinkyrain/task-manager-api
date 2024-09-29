@@ -5,7 +5,7 @@ namespace App\Controllers\AbstractController;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\OODBBean;
 
-abstract class Controller
+abstract class AbstractController
 {
     /**
      * This method return success response

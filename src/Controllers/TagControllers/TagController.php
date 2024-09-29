@@ -1,25 +1,23 @@
 <?php
 
-namespace App\Controllers\TaskControllers;
+namespace App\Controllers\TagControllers;
 
 use App\Controllers\AbstractController\AbstractController;
-use App\Repositories\TaskRepositories\TaskRepository;
-use Exception;
+use App\Repositories\TagRepositories\TagRepository;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use RedBeanPHP\R;
 
-class TaskController extends AbstractController
+class TagController extends AbstractController
 {
-    protected TaskRepository $taskRepository;
+    protected TagRepository $tagRepository;
 
     public function __construct()
     {
-        $this->taskRepository = new TaskRepository();
+        $this->tagRepository = new TagRepository();
     }
 
     /**
-     * This method return all tasks
+     * This method return all tags
      *
      * METHOD: GET
      *
@@ -32,12 +30,14 @@ class TaskController extends AbstractController
         try {
             $page = $request->getQueryParams()['page'] ?? 1;
             $limit = $request->getQueryParams()['limit'] ?? 25;
-            $tasks = $this->taskRepository->getAllTasks($page, $limit);
+
+            $tags = $this->tagRepository->getAllTags($page, $limit);
+            $totalCounts = $this->tagRepository->getTotalTags();
 
             $result = [
-                'data' => $tasks,
+                'data' => $tags,
                 'pagination' => [
-                    'total' => $this->taskRepository->getTotalTasks(),
+                    'total' => $totalCounts,
                     'page' => $page,
                     'limit' => $limit,
                 ],
@@ -50,7 +50,7 @@ class TaskController extends AbstractController
     }
 
     /**
-     * This method return data for one task
+     * This method return data for one tag
      *
      * METHOD: GET
      *
@@ -61,9 +61,10 @@ class TaskController extends AbstractController
     public function getOne(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $taskId = $request->getAttribute('id');
-            $task = $this->taskRepository->getTaskById($taskId);
-            $result['data'] = $task;
+            $tagId = $request->getAttribute('id');
+            $tag = $this->tagRepository->getTagById($tagId);
+
+            $result['data'] = $tag;
         } catch (\Exception $e) {
             return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
@@ -72,7 +73,7 @@ class TaskController extends AbstractController
     }
 
     /**
-     * This method create task
+     * This method create tag
      *
      * METHOD: POST
      *
@@ -84,8 +85,15 @@ class TaskController extends AbstractController
     {
         try {
             $requestData = json_decode($request->getBody()->getContents(), true);
-            $newTaskId = $this->taskRepository->createTask($requestData);
-            $result['data'] = $this->taskRepository->getTaskById($newTaskId);
+
+            //validate
+            if (empty($requestData['title'])) {
+                throw new \Exception('Tag title is required', 400);
+            }
+
+            $newTag = $this->tagRepository->createTag($requestData);
+
+            $result['data'] = $newTag;
         } catch (\Exception $e) {
             return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
@@ -94,7 +102,7 @@ class TaskController extends AbstractController
     }
 
     /**
-     * This method delete task
+     * This method delete tag
      *
      * METHOD: DELETE
      *
@@ -106,7 +114,7 @@ class TaskController extends AbstractController
     {
         try {
             $id = $request->getAttribute('id');
-            $this->taskRepository->deleteTask($id);
+            $this->tagRepository->deleteTag($id);
         } catch (\Exception $e) {
             return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
@@ -115,7 +123,7 @@ class TaskController extends AbstractController
     }
 
     /**
-     * This method update task
+     * This method update tag data
      *
      * METHOD: PUT
      *
@@ -126,10 +134,13 @@ class TaskController extends AbstractController
     public function update(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $taskId = $request->getAttribute('id');
+            $tagId = $request->getAttribute('id');
             $requestData = json_decode($request->getBody()->getContents(), true);
-            $this->taskRepository->updateTask($taskId, $requestData); // Update task fields
-            $result['data'] = $this->taskRepository->getTaskById($taskId);
+
+            // Update tag fields
+            $this->tagRepository->updateTag($tagId, $requestData);
+
+            $result['data'] = $this->tagRepository->getTagById($tagId);
         } catch (\Exception $e) {
             return $this->createErrorResponse($response, $e->getCode() ?? 500, $e->getMessage());
         }
