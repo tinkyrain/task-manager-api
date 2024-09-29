@@ -2,9 +2,8 @@
 
 namespace App\Repositories\TagRepositories;
 
+use App\Models\TagModels\TagModel;
 use Exception;
-use HttpException;
-use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
 use RedBeanPHP\RedException\SQL;
 
@@ -15,47 +14,67 @@ class TagRepository
      *
      * @param int $page
      * @param int $limit
-     * @return OODBBean[]
+     * @return TagModel[]
      */
     public function getAllTags(int $page = 1, int $limit = 25): array
     {
         $offset = ($page - 1) * $limit;
-        return R::find('tags', 'LIMIT ? OFFSET ?', [$limit, $offset]);
+        $tags = R::find('tags', 'LIMIT ? OFFSET ?', [$limit, $offset]);
+
+        // Convert OODBBean objects to Tag objects
+        $tagList = [];
+        foreach ($tags as $tag) {
+            $tagList[] = new TagModel([
+                'id' => $tag->id,
+                'title' => $tag->title
+            ]);
+        }
+
+        return $tagList;
     }
 
     /**
      * Get a tag by ID
      *
      * @param int $id
-     * @return OODBBean|null
-     * @throws HttpException
+     * @return TagModel
+     * @throws Exception
      */
-    public function getTagById(int $id): ?OODBBean
+    public function getTagById(int $id): TagModel
     {
         $tag = R::load('tags', $id);
-        if (!$tag->id) throw new HttpException('Tag not found', 400);
-        return $tag;
+        if (!$tag->id) {
+            throw new Exception('Tag not found', 400);
+        }
+
+        return new TagModel([
+            'id' => $tag->id,
+            'title' => $tag->title
+        ]);
     }
 
     /**
      * Create a new tag
      *
-     * @param string $name
-     * @return int
+     * @param array $data
+     * @return TagModel
      * @throws SQL
      * @throws Exception
      */
-    public function createTag(string $name): int
+    public function createTag(array $data = []): TagModel
     {
         // Validate tag name
-        if (empty($name)) throw new HttpException('Tag name is required', 400);
+        if (empty($data['title'])) throw new Exception('Tag name is required', 400);
 
         // Create a new tag
         $tagTable = R::dispense('tags');
-        $tagTable->name = $name;
+        $tagTable->title = $data['title'];
         $newTagId = R::store($tagTable);
 
-        return (int)$newTagId;
+        return new TagModel([
+            'id' => $newTagId,
+            'title' => $data['title']
+        ]);
     }
 
     /**
@@ -64,7 +83,6 @@ class TagRepository
      * @param int $id
      * @param array $data
      * @return bool
-     * @throws SQL
      * @throws Exception
      */
     public function updateTag(int $id, array $data): bool
@@ -72,15 +90,19 @@ class TagRepository
         // Load the tag by ID
         $tag = $this->getTagById($id);
 
+        $tagTable = R::load('tags', $tag->getId());
+
         // Update tag fields
         foreach ($data as $key => $value) {
-            if (isset($tag->$key)) {
-                $tag->$key = $value;
+            if (isset($tagTable->$key)) {
+                $tagTable->$key = $value;
             }
         }
 
         // Save changes to the database
-        return (bool)R::store($tag);
+        R::store($tagTable);
+
+        return true;
     }
 
     /**
@@ -95,7 +117,19 @@ class TagRepository
         // Load the tag by ID
         $tag = $this->getTagById($id);
 
+        $tagTable = R::load('tags', $tag->getId());
+
         // Delete the tag from the database
-        return (bool)R::trash($tag);
+        return (bool)R::trash($tagTable);
+    }
+
+    /**
+     * Return total tag count
+     *
+     * @return int
+     */
+    public function getTotalTags(): int
+    {
+        return R::count('tags');
     }
 }

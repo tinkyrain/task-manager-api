@@ -2,13 +2,13 @@
 
 namespace App\Controllers\TaskControllers;
 
-use App\Controllers\AbstractController\Controller;
+use App\Controllers\AbstractController\AbstractController;
 use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
 
-class TaskController extends Controller
+class TaskAbstractController extends AbstractController
 {
     /**
      * This method return all tasks

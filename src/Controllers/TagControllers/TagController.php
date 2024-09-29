@@ -2,14 +2,20 @@
 
 namespace App\Controllers\TagControllers;
 
-use App\Controllers\AbstractController\Controller;
-use Exception;
+use App\Controllers\AbstractController\AbstractController;
+use App\Repositories\TagRepositories\TagRepository;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use RedBeanPHP\R;
 
-class TagController extends Controller
+class TagController extends AbstractController
 {
+    protected TagRepository $tagRepository;
+
+    public function __construct()
+    {
+        $this->tagRepository = new TagRepository();
+    }
+
     /**
      * This method return all tags
      *
@@ -22,23 +28,21 @@ class TagController extends Controller
     public function getAll(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $page = empty($request->getQueryParams()['page']) ? 1 : (int)$request->getQueryParams()['page']; // get page
-            $limit = empty($request->getQueryParams()['limit']) ? 25 : (int)$request->getQueryParams()['limit']; // get limit data per page
-            $offset = ($page - 1) * $limit; // offset
+            $page = $request->getQueryParams()['page'] ?? 1;
+            $limit = $request->getQueryParams()['limit'] ?? 25;
 
-            $tags = R::find('tags', 'LIMIT ? OFFSET ?', [$limit, $offset]); // get data
-            $totalTags = R::count('tags'); // get total task count
+            $tags = $this->tagRepository->getAllTags($page, $limit);
+            $totalCounts = $this->tagRepository->getTotalTags();
 
-            // Формируем результат
             $result = [
-                'data' => array_values($tags),
+                'data' => $tags,
                 'pagination' => [
-                    'total' => $totalTags,
+                    'total' => $totalCounts,
                     'page' => $page,
                     'limit' => $limit,
                 ],
             ];
-        } catch (Exception|\DivisionByZeroError $e) {
+        } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
@@ -46,7 +50,7 @@ class TagController extends Controller
     }
 
     /**
-     * This method return data for one task
+     * This method return data for one tag
      *
      * METHOD: GET
      *
@@ -57,14 +61,11 @@ class TagController extends Controller
     public function getOne(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $tagId = (int)$request->getAttribute('id');
-            $tag = R::load('tags', $tagId); //load tag
-
-            //check task exist
-            if (!$tag->id) return $this->createErrorResponse($response, 404, 'Tag not found');
+            $tagId = $request->getAttribute('id');
+            $tag = $this->tagRepository->getTagById($tagId);
 
             $result['data'] = $tag;
-        } catch (Exception|\DivisionByZeroError $e) {
+        } catch (\Exception $e) {
             return $this->createErrorResponse($response, 500, $e->getMessage());
         }
 
@@ -78,26 +79,23 @@ class TagController extends Controller
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param $args
      * @return ResponseInterface
      */
-    public function create(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function create(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $requestData = json_decode($request->getBody()->getContents(), true); //get request data
+            $requestData = json_decode($request->getBody()->getContents(), true);
 
             //validate
-            if (empty($requestData['name']))
-                return $this->createErrorResponse($response, 400, 'Tag name is required');
+            if (empty($requestData['title'])) {
+                throw new \Exception('Tag title is required', 400);
+            }
 
-            $tagTable = R::dispense('tags');
-            $tagTable->name = $requestData['name'];
+            $newTag = $this->tagRepository->createTag($requestData);
 
-            $newTagId = R::store($tagTable);
-
-            $result['data'] = isset($newTagId) ? R::load('tags', $newTagId) : [];
-        } catch (Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            $result['data'] = $newTag;
+        } catch (\Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 201);
@@ -110,24 +108,15 @@ class TagController extends Controller
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param $args
      * @return ResponseInterface
      */
-    public function delete(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function delete(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $id = $request->getAttribute('id');
-            $tag = R::load('tags', (int)$id);
-
-            // check tag
-            if (!$tag->id) {
-                return $this->createErrorResponse($response, 404, 'Tag not found');
-            }
-
-            // delete tag
-            R::trash($tag);
-        } catch (Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            $this->tagRepository->deleteTag($id);
+        } catch (\Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, [], 204);
@@ -140,37 +129,20 @@ class TagController extends Controller
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param $args
      * @return ResponseInterface
      */
-    public function update(RequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function update(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
             $tagId = $request->getAttribute('id');
             $requestData = json_decode($request->getBody()->getContents(), true);
 
-            // Load tag from DB
-            $tag = R::load('tags', $tagId);
+            // Update tag fields
+            $this->tagRepository->updateTag($tagId, $requestData);
 
-            // Check if tag exists
-            if (!$tag->id) {
-                return $this->createErrorResponse($response, 404, 'Tag not found');
-            }
-
-            // Update tag fields from request data
-            $tableColumns = array_keys(R::inspect('tags'));
-            foreach ($tableColumns as $column) {
-                if (isset($requestData[$column])) {
-                    $tag->$column = $requestData[$column];
-                }
-            }
-
-            // Save changes and handle potential errors
-
-            R::store($tag);
-            $result['data'] = $tag;
-        } catch (Exception $e) {
-            return $this->createErrorResponse($response, 500, $e->getMessage());
+            $result['data'] = $this->tagRepository->getTagById($tagId);
+        } catch (\Exception $e) {
+            return $this->createErrorResponse($response, $e->getCode(), $e->getMessage());
         }
 
         return $this->createSuccessResponse($response, $result, 200);

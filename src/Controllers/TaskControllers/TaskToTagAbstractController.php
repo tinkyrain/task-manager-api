@@ -2,12 +2,12 @@
 
 namespace App\Controllers\TaskControllers;
 
-use App\Controllers\AbstractController\Controller;
+use App\Controllers\AbstractController\AbstractController;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RedBeanPHP\R;
 
-class TaskToTagController extends Controller
+class TaskToTagAbstractController extends AbstractController
 {
     /**
      * This method add task to tag connection
