@@ -46,22 +46,30 @@ class TaskToTagRepository
      */
     public function deleteTaskToTag(int $taskId, int $tagId): bool
     {
-        // Load task and tag
-        $task = R::load('tasks', $taskId);
-        $tag = R::load('tags', $tagId);
+        try {
+            R::begin();
 
-        // Exist check
-        if (!$task->id) throw new Exception('Task not found', 400);
-        if (!$tag->id) throw new Exception('Tag not found', 400);
+            // Load task and tag
+            $task = R::load('tasks', $taskId);
+            $tag = R::load('tags', $tagId);
 
-        // Delete connection
-        $task->sharedTags = array_filter($task->sharedTags, function ($sharedTag) use ($tag) {
-            return $sharedTag->id !== $tag->id;
-        });
+            // Exist check
+            if (!$task->id) throw new Exception('Task not found', 400);
+            if (!$tag->id) throw new Exception('Tag not found', 400);
 
-        R::store($task);
+            // Delete connection
+            $task->sharedTags = array_filter($task->sharedTags, function ($sharedTag) use ($tag) {
+                return $sharedTag->id !== $tag->id;
+            });
 
-        return true;
+            R::store($task);
+            R::commit();
+
+            return true;
+        } catch (Exception $e) {
+            R::rollback();
+            throw new Exception($e->getMessage(), $e->getCode() ?? 500);
+        }
     }
 
     /**
